@@ -67,13 +67,13 @@ def create_list_img_left_right():
     floorIndex = get_number_index(imagesRightCam[0])
     rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
     
-    imagesLeftRightCam = set(leftImagesId).intersection(rightImagesId)
+    imagesLeftRightCam.extend(set(leftImagesId).intersection(rightImagesId))
 
 def get_number_index(filename):
     return filename.find('_') + 1
 
 def save_to_csv():
-    with open("output.csv", "wb") as f:
+    with open("output.csv", "w", encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         writer.writerows(imagesLeftRightCam)
 
@@ -84,7 +84,8 @@ def main():
     print("Run Time = {:.2f}".format(time.time() - start))
     # print(imagesLeftCam)
     # print(imagesRightCam)
-    # print(imagesLeftRightCam)
+    print(imagesLeftRightCam)
+    save_to_csv()
 
 
 if __name__ == "__main__":
