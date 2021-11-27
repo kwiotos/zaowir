@@ -3,6 +3,7 @@ import cv2 as cv
 import glob
 import os
 import time
+import csv
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -70,6 +71,11 @@ def create_list_img_left_right():
 
 def get_number_index(filename):
     return filename.find('_') + 1
+
+def save_to_csv():
+    with open("output.csv", "wb") as f:
+        writer = csv.writer(f)
+        writer.writerows(imagesLeftRightCam)
 
 def main():
     start = time.time()
