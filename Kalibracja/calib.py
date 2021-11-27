@@ -24,10 +24,11 @@ dirname = os.path.join(os.path.realpath('.'), 'src','s1', '*.png')
 images = glob.glob(dirname)
 for fname in images:
     print('filename: {}'.format(fname))
+    img = cv.imread(fname)
     try:
-        img = cv.imread(fname)
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     except:
-        print('Error reading image {}'.format(fname))
+        print('Error cvtColor {}'.format(fname))
         continue
     gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # Find the chess board corners
