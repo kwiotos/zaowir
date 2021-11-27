@@ -18,27 +18,49 @@ imagesLeftCam = []
 #obrazy z poprawnie wykrytą szachownicą dla jednej z kamer to mają być pary zdjęć dla prawej i lewej - to do parametrow zewnetrznych
 imagesLeftRightCam = []
 
-# get relative path
-# dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
+def calib_cam():
+    # get relative path
+    # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
 
-images = glob.glob(dirname)
-for fname in images:
-    print('filename: {}'.format(fname))
-    img = cv.imread(fname)
-    try:
-        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-    except:
-        print('Error cvtColor {}'.format(fname))
-        continue
-    # Find the chess board corners
-    ret, corners = cv.findChessboardCorners(gray, (6, 8), None)
-    # If found, add object points, image points (after refining them)
-    if ret == True:
-        objpoints.append(objp)
-        corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-        imgpoints.append(corners)
-        # Draw and display the corners
-        cv.drawChessboardCorners(img, (6, 8), corners2, ret)
-        cv.imshow('img', img)
-        cv.waitKey(500)
-cv.destroyAllWindows()
+    # images = glob.glob(dirname)
+    images = glob.glob('*.png')
+    for fname in images:
+        print('filename: {}'.format(fname))
+        img = cv.imread(fname)
+        try:
+            gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        except:
+            print('Error cvtColor {}'.format(fname))
+            continue
+        # Find the chess board corners
+        ret, corners = cv.findChessboardCorners(gray, (6, 8), None)
+        # If found, add object points, image points (after refining them)
+        if ret == True:
+            handle_add_to_list(fname)
+            objpoints.append(objp)
+            corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+            imgpoints.append(corners)
+            # Draw and display the corners
+            cv.drawChessboardCorners(img, (6, 8), corners2, ret)
+            cv.imshow('img', img)
+            cv.waitKey(500)
+    cv.destroyAllWindows()
+
+
+
+
+def handle_add_to_list(filename):
+    if filename.find('left') >= 0:
+        imagesLeftCam.append(filename)
+    elif filename.find('right') >= 0:
+        imagesRightCam.append(filename)
+
+def main():
+    calib_cam()
+    print(imagesLeftCam)
+    print(imagesRightCam)
+    print(imagesLeftRightCam)
+
+
+if __name__ == "__main__":
+    main()
