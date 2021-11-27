@@ -30,7 +30,6 @@ for fname in images:
     except:
         print('Error cvtColor {}'.format(fname))
         continue
-    gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
     # Find the chess board corners
     ret, corners = cv.findChessboardCorners(gray, (6, 8), None)
     # If found, add object points, image points (after refining them)
