@@ -81,7 +81,7 @@ def main():
     start = time.time()
     calib_cam()
     create_list_img_left_right()
-    print("Run Time = {}".format(time.time() - start))
+    print("Run Time = {.2f}".format(time.time() - start))
     # print(imagesLeftCam)
     # print(imagesRightCam)
     # print(imagesLeftRightCam)
