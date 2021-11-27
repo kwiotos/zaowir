@@ -19,7 +19,7 @@ imagesLeftCam = []
 imagesLeftRightCam = []
 
 # get relative path
-dirname = os.path.join(os.path.realpath('.'), 'src','s1', '*.png')
+# dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
 
 images = glob.glob(dirname)
 for fname in images:
