@@ -1,6 +1,8 @@
 import numpy as np
 import cv2 as cv
 import glob
+import os
+
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
@@ -15,7 +17,11 @@ imagesRightCam = []
 imagesLeftCam = []
 #obrazy z poprawnie wykrytą szachownicą dla jednej z kamer to mają być pary zdjęć dla prawej i lewej - to do parametrow zewnetrznych
 imagesLeftRightCam = []
-images = glob.glob('*.png')
+
+# get relative path
+dirname = os.path.join(os.path.realpath('.'), 'src','s1', '*.png')
+
+images = glob.glob(dirname)
 for fname in images:
     print('filename: {}'.format(fname))
     try:
