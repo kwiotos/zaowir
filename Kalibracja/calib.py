@@ -2,6 +2,7 @@ import numpy as np
 import cv2 as cv
 import glob
 import os
+import time
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -69,11 +70,15 @@ def create_list_img_left_right():
 
 def get_number_index(filename):
     return filename.find('_') + 1
+
 def main():
+    start = time.time()
     calib_cam()
-    print(imagesLeftCam)
-    print(imagesRightCam)
-    print(imagesLeftRightCam)
+    create_list_img_left_right()
+    print("Run Time = {}".format(time.time() - start))
+    # print(imagesLeftCam)
+    # print(imagesRightCam)
+    # print(imagesLeftRightCam)
 
 
 if __name__ == "__main__":
