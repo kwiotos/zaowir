@@ -130,3 +130,6 @@ dmypy.json
 
 # Ignore folder src
 /src
+
+# Ignore csv files
+*.csv
