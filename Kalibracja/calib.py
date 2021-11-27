@@ -59,6 +59,16 @@ def handle_add_to_list(filename):
         imagesRightCam.append(filename)
 
 
+def create_list_img_left_right():
+    floorIndex = get_number_index(imagesLeftCam[0])
+    leftImagesId = [filename[floorIndex:] for filename in imagesLeftCam]
+    floorIndex = get_number_index(imagesRightCam[0])
+    rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
+    
+    imagesLeftRightCam = set(leftImagesId).intersection(rightImagesId)
+
+def get_number_index(filename):
+    return filename.find('_') + 1
 def main():
     calib_cam()
     print(imagesLeftCam)
