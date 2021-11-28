@@ -8,11 +8,15 @@ import csv
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*7, 3), np.float32)
-objp[:, :2] = np.mgrid[0:7, 0:6].T.reshape(-1, 2)
+objp = np.zeros((6*8, 3), np.float32)
+objp[:, :2] = np.mgrid[0:8, 0:6].T.reshape(-1, 2)
 # Arrays to store object points and image points from all the images.
 objpoints = []  # 3d point in real world space
 imgpoints = []  # 2d points in image plane.
+objpointsleft = []  # 3d point in real world space - left cam
+imgpointsleft = []  # 2d points in image plane. - left cam
+objpointsright = []  # 3d point in real world space - right cam
+imgpointsright = []  # 2d points in image plane. -right cam
 # obrazy z poprawnie wykrytą szachownicą dla prawej kamery - par wewn.
 imagesRightCam = []
 # obrazy z poprawnie wykrytą szachownicą dla lewej kamery - par wewn.
@@ -39,11 +43,9 @@ def calib_cam():
         ret, corners = cv.findChessboardCorners(img, (6, 8), None)
         # If found, add object points, image points (after refining them)
         if ret:
-            handle_add_to_list(fname)
-            objpoints.append(objp)
-            imgpoints.append(corners)
+            handle_add_to_list(fname, corners)
             # Draw and display the corners
-            show_img(img, gray, corners)
+            # show_img(img, gray, corners)
     cv.destroyAllWindows()
 
 
@@ -54,11 +56,15 @@ def show_img(img, gray, corners):
     cv.waitKey(500)
 
 
-def handle_add_to_list(filename):
+def handle_add_to_list(filename, corners):
     if filename.find('left') >= 0:
         imagesLeftCam.append(filename)
+        objpointsleft.append(objp)
+        imgpointsleft.append(corners)
     elif filename.find('right') >= 0:
         imagesRightCam.append(filename)
+        objpointsright.append(objp)
+        imgpointsright.append(corners)
 
 
 def create_list_img_left_right():
@@ -66,16 +72,19 @@ def create_list_img_left_right():
     leftImagesId = [filename[floorIndex:] for filename in imagesLeftCam]
     floorIndex = get_number_index(imagesRightCam[0])
     rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
-    
+
     imagesLeftRightCam.extend(set(leftImagesId).intersection(rightImagesId))
+
 
 def get_number_index(filename):
     return filename.find('_') + 1
+
 
 def save_to_csv():
     with open("output.csv", "w", encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         writer.writerows(imagesLeftRightCam)
+
 
 def main():
     start = time.time()
