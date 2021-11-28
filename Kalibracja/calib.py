@@ -49,7 +49,9 @@ def provide_date_for_calib():
         # Find the chess board corners
         ret, corners = cv.findChessboardCorners(img, CHESSBOARD_SIZE, None)
         # If found, add object points, image points (after refining them)
-        if ret:
+        if ret:      
+            # for stereo calib use
+            # corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             handle_add_to_list(fname, corners)
             # Draw and display the corners
             # show_img(img, gray, corners)
@@ -57,8 +59,9 @@ def provide_date_for_calib():
 
 
 def show_img(img, gray, corners):
-    corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-    cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners2)
+    # for single calib use
+    corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+    cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners)
     cv.imshow('img', img)
     cv.waitKey(500)
 
