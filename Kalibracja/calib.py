@@ -120,12 +120,50 @@ def calib_single_cam(objpointsArg, imgpointsArg):
     # Not sure which matrix we should save
     return cameraMatrix, dst
 
+
 def save_single_calib_to_xml(cameraMatrix, map, filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
     cv_file.write('camera_matrix', cameraMatrix)
-    cv_file.write('map_x',map[0])
-    cv_file.write('map_y',map[1])
+    cv_file.write('map_x', map[0])
+    cv_file.write('map_y', map[1])
+    cv_file.release()
 
+
+def calib_stereo_cam(): #sort all list missing 
+    # Calibration Left Cam
+    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, imgpointsLeft, FRAME_SIZE, None, None)
+    newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
+
+    # Calibration Right Cam
+    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, imgpointsRight, FRAME_SIZE, None, None)
+    newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
+
+    # Stereo vision calibration
+    flags = 0
+    flags |= cv.CALIB_FIX_INTRINSIC
+    
+    criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, imgpointsLeft, imgpointsRight, newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
+
+    # Shuld save some matrix, not sure which
+
+    # Stereo Rectification
+    
+    rectifyScale= 1
+    rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R= cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
+
+    stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
+    stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
+
+    save_stereo_config(stereoMapL, stereoMapR, "stereoConfig")
+
+def save_stereo_config(mapL, mapR, filename):
+    cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
+    cv_file.write('stereoMapL_x', mapL[0])
+    cv_file.write('stereoMapL_y', mapL[1])
+    cv_file.write('stereoMapR_x', mapR[0])
+    cv_file.write('stereoMapR_y', mapR[1])
     cv_file.release()
 
 
@@ -133,20 +171,21 @@ def main():
     start = time.time()
     provide_date_for_calib()
 
-    # Left Cam
-    cameraMatrix, dst = calib_single_cam(objpointsLeft, imgpointsLeft)
-    save_single_calib_to_xml(cameraMatrix, dst, "leftCamConfig")
+    # # Left Cam
+    # cameraMatrix, dst = calib_single_cam(objpointsLeft, imgpointsLeft)
+    # save_single_calib_to_xml(cameraMatrix, dst, "leftCamConfig")
 
-    # Right Cam
-    cameraMatrix, dst = calib_single_cam(objpointsRight, imgpointsRight)
-    save_single_calib_to_xml(cameraMatrix, dst, "rightCamConfig")
+    # # Right Cam
+    # cameraMatrix, dst = calib_single_cam(objpointsRight, imgpointsRight)
+    # save_single_calib_to_xml(cameraMatrix, dst, "rightCamConfig")
 
     create_list_img_left_right()
+    calib_stereo_cam()
     print("Run Time = {:.2f}".format(time.time() - start))
     # print(imagesLeftCam)
     # print(imagesRightCam)
     # print(imagesLeftRightCam)
-    save_to_csv(imagesLeftRightCam, "imagesLeftRightCam")
+    # save_to_csv(imagesLeftRightCam, "imagesLeftRightCam")
 
 
 if __name__ == "__main__":
