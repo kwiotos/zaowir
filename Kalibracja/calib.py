@@ -32,7 +32,7 @@ imagesLeftCam = []
 imagesLeftRightCam = []
 
 
-def calib_cam():
+def provide_date_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
 
@@ -98,7 +98,7 @@ def save_to_csv():
 
 def main():
     start = time.time()
-    calib_cam()
+    provide_date_for_calib()
     create_list_img_left_right()
     print("Run Time = {:.2f}".format(time.time() - start))
     # print(imagesLeftCam)
