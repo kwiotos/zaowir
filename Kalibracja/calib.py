@@ -20,10 +20,10 @@ objp = objp * SIZE_OF_CHESSBOARD_SQUARS_MM
 # Arrays to store object points and image points from all the images.
 objpoints = []  # 3d point in real world space
 imgpoints = []  # 2d points in image plane.
-objpointsleft = []  # 3d point in real world space - left cam
-imgpointsleft = []  # 2d points in image plane. - left cam
-objpointsright = []  # 3d point in real world space - right cam
-imgpointsright = []  # 2d points in image plane. -right cam
+objpointsLeft = []  # 3d point in real world space - left cam
+imgpointsLeft = []  # 2d points in image plane. - left cam
+objpointsRight = []  # 3d point in real world space - right cam
+imgpointsRight = []  # 2d points in image plane. -right cam
 # obrazy z poprawnie wykrytą szachownicą dla prawej kamery - par wewn.
 imagesRightCam = []
 # obrazy z poprawnie wykrytą szachownicą dla lewej kamery - par wewn.
@@ -66,12 +66,12 @@ def show_img(img, gray, corners):
 def handle_add_to_list(filename, corners):
     if filename.find('left') >= 0:
         imagesLeftCam.append(filename)
-        objpointsleft.append(objp)
-        imgpointsleft.append(corners)
+        objpointsLeft.append(objp)
+        imgpointsLeft.append(corners)
     elif filename.find('right') >= 0:
         imagesRightCam.append(filename)
-        objpointsright.append(objp)
-        imgpointsright.append(corners)
+        objpointsLeft.append(objp)
+        imgpointsRight.append(corners)
 
 
 def create_list_img_left_right():
@@ -80,7 +80,10 @@ def create_list_img_left_right():
     floorIndex = get_number_index(imagesRightCam[0])
     rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
 
+    # Adding photo numbers to list
     imagesLeftRightCam.extend(set(leftImagesId).intersection(rightImagesId))
+    # Adding correct number of 3d points to list
+    objpoints.extend(objpointsLeft[:len(imagesLeftRightCam)])
 
 
 def get_number_index(filename):
