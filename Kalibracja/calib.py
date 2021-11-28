@@ -5,11 +5,18 @@ import os
 import time
 import csv
 
+CHESSBOARD_SIZE = (6, 8)
+SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
+FRAME_SIZE = (1280, 1024)  # could be set on runtime depending on photo size
+
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
-objp = np.zeros((6*8, 3), np.float32)
-objp[:, :2] = np.mgrid[0:8, 0:6].T.reshape(-1, 2)
+objp = np.zeros((CHESSBOARD_SIZE[0]*CHESSBOARD_SIZE[1], 3), np.float32)
+objp[:, :2] = np.mgrid[0:CHESSBOARD_SIZE[0],
+                       0:CHESSBOARD_SIZE[1]].T.reshape(-1, 2)
+objp = objp * SIZE_OF_CHESSBOARD_SQUARS_MM
+
 # Arrays to store object points and image points from all the images.
 objpoints = []  # 3d point in real world space
 imgpoints = []  # 2d points in image plane.
@@ -40,7 +47,7 @@ def calib_cam():
             print('Error cvtColor {}'.format(fname))
             continue
         # Find the chess board corners
-        ret, corners = cv.findChessboardCorners(img, (6, 8), None)
+        ret, corners = cv.findChessboardCorners(img, CHESSBOARD_SIZE, None)
         # If found, add object points, image points (after refining them)
         if ret:
             handle_add_to_list(fname, corners)
@@ -51,7 +58,7 @@ def calib_cam():
 
 def show_img(img, gray, corners):
     corners2 = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
-    cv.drawChessboardCorners(img, (6, 8), corners2)
+    cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners2)
     cv.imshow('img', img)
     cv.waitKey(500)
 
