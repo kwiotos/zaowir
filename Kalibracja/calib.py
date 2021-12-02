@@ -31,13 +31,19 @@ imagesLeftCam = []
 # obrazy z poprawnie wykrytą szachownicą dla jednej z kamer to mają być pary zdjęć dla prawej i lewej - to do parametrow zewnetrznych
 imagesLeftRightCam = []
 
+imageLeft_dict = {}
+imageRight_dict = {}
+common_keys =[]
+common_imageLeft_dict = {}
+common_imageRight_dict = {}
+
 
 def provide_date_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
 
     # images = glob.glob(dirname)
-    images = glob.glob('*.png')
+    images = glob.glob('s1/*.png')
     for fname in images:
         print('filename: {}'.format(fname))
         # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
@@ -52,7 +58,7 @@ def provide_date_for_calib():
         # If found, add object points, image points (after refining them)
         if ret:
             # for stereo calib use
-            # corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+            corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             handle_add_to_list(fname, corners)
             # Draw and display the corners
             # show_img(img, gray, corners)
@@ -75,10 +81,17 @@ def handle_add_to_list(filename, corners):
         imagesLeftCam.append(filename)
         objpointsLeft.append(objp)
         imgpointsLeft.append(corners)
+
+        floorIndex = get_number_index(filename)
+        imageLeft_dict[filename[floorIndex:]] = corners
+
     elif filename.find('right') >= 0:
         imagesRightCam.append(filename)
         objpointsRight.append(objp)
         imgpointsRight.append(corners)
+
+        floorIndex = get_number_index(filename)
+        imageRight_dict[filename[floorIndex:]] = corners
 
 
 def create_list_img_left_right():
@@ -88,7 +101,16 @@ def create_list_img_left_right():
     rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
 
     # Adding photo numbers to list
+
     imagesLeftRightCam.extend(set(leftImagesId).intersection(rightImagesId))
+
+    common_keys.extend(set(imageLeft_dict.keys()).intersection(imageRight_dict.keys()))
+
+    common_imageLeft_dict = {key : imageLeft_dict[key] for key in common_keys}
+    common_imageRight_dict = {key : imageRight_dict[key] for key in common_keys}
+    print(common_imageLeft_dict)
+    print("\n\n\n")
+    print(common_imageRight_dict)
     # Adding correct number of 3d points to list
     objpoints.extend(objpointsLeft[:len(imagesLeftRightCam)])
 
@@ -171,16 +193,18 @@ def main():
     start = time.time()
     provide_date_for_calib()
 
-    # # Left Cam
+    # Left Cam
     # cameraMatrix, dst = calib_single_cam(objpointsLeft, imgpointsLeft)
     # save_single_calib_to_xml(cameraMatrix, dst, "leftCamConfig")
+    # print("Macierz wewnętrzna lewa kamera: {}\n".format(cameraMatrix))
 
-    # # Right Cam
+    # Right Cam
     # cameraMatrix, dst = calib_single_cam(objpointsRight, imgpointsRight)
     # save_single_calib_to_xml(cameraMatrix, dst, "rightCamConfig")
+    # print("Macierz wewnętrzna prawa kamera: {}\n".format(cameraMatrix))
 
     create_list_img_left_right()
-    calib_stereo_cam()
+    #calib_stereo_cam()
     print("Run Time = {:.2f}".format(time.time() - start))
     # print(imagesLeftCam)
     # print(imagesRightCam)
