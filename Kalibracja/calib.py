@@ -54,7 +54,7 @@ def provide_date_for_calib():
             # show_img(img, corners)
     # I do not like the solution, but do not have idea for better one in this moment
     global imgForCalib
-    imgForCalib = img
+    imgForCalib = gray
     cv.destroyAllWindows()
 
 
@@ -129,13 +129,13 @@ def save_single_calib_to_xml(cameraMatrix, map, filename):
 
 def calib_stereo_cam(): #sort all list missing 
     # Calibration Left Cam
-    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, imageLeft_dict.values(), FRAME_SIZE, None, None)
+    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, list(imageLeft_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
 
     # Calibration Right Cam
-    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, imageRight_dict.values(), FRAME_SIZE, None, None)
+    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, list(imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixR, dstMap, "rightCamConfig")
@@ -146,14 +146,14 @@ def calib_stereo_cam(): #sort all list missing
     
     criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
-    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, common_imageLeft_dict.values(), common_imageRight_dict.values(), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, ximgForCalib.shape[::-1], criteria_stereo, flags)
 
     # Shuld save some matrix, not sure which
 
     # Stereo Rectification
     
     rectifyScale= 1
-    rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R= cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
+    rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
 
     stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
     stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
