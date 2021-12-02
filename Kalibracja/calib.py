@@ -51,16 +51,14 @@ def provide_date_for_calib():
             corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             handle_add_to_list(fname, corners)
             # Draw and display the corners
-            # show_img(img, gray, corners)
+            # show_img(img, corners)
     # I do not like the solution, but do not have idea for better one in this moment
     global imgForCalib
     imgForCalib = img
     cv.destroyAllWindows()
 
 
-def show_img(img, gray, corners):
-    # for single calib use
-    corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
+def show_img(img, corners):
     cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners)
     cv.imshow('img', img)
     cv.waitKey(500)
