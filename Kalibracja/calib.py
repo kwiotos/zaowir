@@ -106,11 +106,9 @@ def create_list_img_left_right():
 
     common_keys.extend(set(imageLeft_dict.keys()).intersection(imageRight_dict.keys()))
 
-    common_imageLeft_dict = {key : imageLeft_dict[key] for key in common_keys}
-    common_imageRight_dict = {key : imageRight_dict[key] for key in common_keys}
-    print(common_imageLeft_dict)
-    print("\n\n\n")
-    print(common_imageRight_dict)
+    common_imageLeft_dict.update({key : imageLeft_dict[key] for key in common_keys})
+    common_imageRight_dict.update({key : imageRight_dict[key] for key in common_keys})
+    
     # Adding correct number of 3d points to list
     objpoints.extend(objpointsLeft[:len(imagesLeftRightCam)])
 
