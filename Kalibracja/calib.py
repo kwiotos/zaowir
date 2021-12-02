@@ -140,6 +140,11 @@ def calib_single_cam(objpointsArg, imgpointsArg):
     # Not sure which matrix we should save
     return cameraMatrix, dst
 
+def distortion_with_map(cameraMatrix, dist, newCameraMatrix, size):
+    # Undistort with Remapping
+    mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix, size, 5)
+    dst = cv.remap(imgForCalib, mapx, mapy, cv.INTER_LINEAR)
+    return dst
 
 def save_single_calib_to_xml(cameraMatrix, map, filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
