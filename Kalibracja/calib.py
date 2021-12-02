@@ -19,17 +19,8 @@ objp = objp * SIZE_OF_CHESSBOARD_SQUARS_MM
 
 # Arrays to store object points and image points from all the images.
 objpoints = []  # 3d point in real world space
-imgpoints = []  # 2d points in image plane.
 objpointsLeft = []  # 3d point in real world space - left cam
-imgpointsLeft = []  # 2d points in image plane. - left cam
 objpointsRight = []  # 3d point in real world space - right cam
-imgpointsRight = []  # 2d points in image plane. -right cam
-# obrazy z poprawnie wykrytą szachownicą dla prawej kamery - par wewn.
-imagesRightCam = []
-# obrazy z poprawnie wykrytą szachownicą dla lewej kamery - par wewn.
-imagesLeftCam = []
-# obrazy z poprawnie wykrytą szachownicą dla jednej z kamer to mają być pary zdjęć dla prawej i lewej - to do parametrow zewnetrznych
-imagesLeftRightCam = []
 
 imageLeft_dict = {}
 imageRight_dict = {}
@@ -77,18 +68,12 @@ def show_img(img, gray, corners):
 
 def handle_add_to_list(filename, corners):
     if filename.find('left') >= 0:
-        imagesLeftCam.append(filename)
         objpointsLeft.append(objp)
-        imgpointsLeft.append(corners)
-
         floorIndex = get_number_index(filename)
         imageLeft_dict[filename[floorIndex:]] = corners
 
     elif filename.find('right') >= 0:
-        imagesRightCam.append(filename)
         objpointsRight.append(objp)
-        imgpointsRight.append(corners)
-
         floorIndex = get_number_index(filename)
         imageRight_dict[filename[floorIndex:]] = corners
 
@@ -150,7 +135,7 @@ def calib_stereo_cam(): #sort all list missing
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
-    
+
     # Calibration Right Cam
     retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, imageRight_dict.values(), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
@@ -191,22 +176,18 @@ def main():
     provide_date_for_calib()
 
     # Left Cam
-    # cameraMatrix, dst = calib_single_cam(objpointsLeft, imgpointsLeft)
+    # cameraMatrix, dst = calib_single_cam(objpointsLeft, imageLeft_dict.values())
     # save_single_calib_to_xml(cameraMatrix, dst, "leftCamConfig")
     # print("Macierz wewnętrzna lewa kamera: {}\n".format(cameraMatrix))
 
     # Right Cam
-    # cameraMatrix, dst = calib_single_cam(objpointsRight, imgpointsRight)
+    # cameraMatrix, dst = calib_single_cam(objpointsRight, imageRight_dict.values())
     # save_single_calib_to_xml(cameraMatrix, dst, "rightCamConfig")
     # print("Macierz wewnętrzna prawa kamera: {}\n".format(cameraMatrix))
 
     create_list_img_left_right()
-    #calib_stereo_cam()
+    calib_stereo_cam()
     print("Run Time = {:.2f}".format(time.time() - start))
-    # print(imagesLeftCam)
-    # print(imagesRightCam)
-    # print(imagesLeftRightCam)
-    # save_to_csv(imagesLeftRightCam, "imagesLeftRightCam")
 
 
 if __name__ == "__main__":
