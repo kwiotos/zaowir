@@ -156,12 +156,16 @@ def save_single_calib_to_xml(cameraMatrix, map, filename):
 
 def calib_stereo_cam(): #sort all list missing 
     # Calibration Left Cam
-    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, imgpointsLeft, FRAME_SIZE, None, None)
+    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, imageLeft_dict.values(), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
-
+    dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
+    save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
+    
     # Calibration Right Cam
-    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, imgpointsRight, FRAME_SIZE, None, None)
+    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, imageRight_dict.values(), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
+    dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
+    save_single_calib_to_xml(newCameraMatrixR, dstMap, "rightCamConfig")
 
     # Stereo vision calibration
     flags = 0
@@ -169,7 +173,7 @@ def calib_stereo_cam(): #sort all list missing
     
     criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
-    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, imgpointsLeft, imgpointsRight, newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, common_imageLeft_dict.values(), common_imageRight_dict.values(), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
 
     # Shuld save some matrix, not sure which
 
