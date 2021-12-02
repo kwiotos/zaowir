@@ -32,9 +32,10 @@ common_imageRight_dict = {}
 def provide_date_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
+    dirname = os.path.join(os.path.realpath('.'), '..', 'src', 's4', '*.png')
 
-    # images = glob.glob(dirname)
-    images = glob.glob('s1/*.png')
+    images = glob.glob(dirname)
+    # images = glob.glob('*.png')
     for fname in images:
         print('filename: {}'.format(fname))
         # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
@@ -52,17 +53,17 @@ def provide_date_for_calib():
             corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             handle_add_to_list(fname, corners)
             # Draw and display the corners
-            # show_img(img, corners)
+            # show_img(img, corners, fname)
     # I do not like the solution, but do not have idea for better one in this moment
     global imgForCalib
     imgForCalib = gray
     cv.destroyAllWindows()
 
 
-def show_img(img, corners):
-    cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners)
-    cv.imshow('img', img)
-    cv.waitKey(500)
+def show_img(img, corners, filename):
+    cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners, True)
+    cv.imshow("img", img)
+    cv.waitKey(2000)
 
 
 def handle_add_to_list(filename, corners):
@@ -134,12 +135,14 @@ def calib_stereo_cam(): #sort all list missing
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
+    mean_error(objpointsLeft, list(imageLeft_dict.values()), rvecsL, tvecsL,cameraMatrixL, distL)
 
     # Calibration Right Cam
     retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, list(imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixR, dstMap, "rightCamConfig")
+    mean_error(objpointsRight, list(imageRight_dict.values()), rvecsR, tvecsR, cameraMatrixR, distR)
 
     # Stereo vision calibration
     flags = 0
@@ -147,9 +150,10 @@ def calib_stereo_cam(): #sort all list missing
     
     criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
-    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria= criteria_stereo, flags= flags)
 
     print("Baseline: {}".format(LA.norm(trans)))
+    # print("Baseline: {}".format(LA.norm(LA.inv(rot)*trans)))
 
     # Shuld save some matrix, not sure which
 
@@ -163,16 +167,27 @@ def calib_stereo_cam(): #sort all list missing
     stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
     stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
 
-    save_stereo_config(stereoMapL, stereoMapR, trans, "stereoConfig")
+    save_stereo_config(stereoMapL, stereoMapR, trans, rot, "stereoConfig")
 
-def save_stereo_config(mapL, mapR, trans, filename):
+
+def save_stereo_config(mapL, mapR, trans, rot, filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
     cv_file.write('stereoMapL_x', mapL[0])
     cv_file.write('stereoMapL_y', mapL[1])
     cv_file.write('stereoMapR_x', mapR[0])
     cv_file.write('stereoMapR_y', mapR[1])
     cv_file.write('trans', trans)
+    cv_file.write('rot', rot)
     cv_file.release()
+
+
+def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
+    mean_error = 0
+    for i in range(len(objpoints)):
+        imgpoints2, _ = cv.projectPoints(objpointsArg[i], rvecs[i], tvecs[i], mtx, dist)
+        error = cv.norm(imgpointsArg[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
+        mean_error += error
+    print("Mean reprojection error: {}", mean_error/len(objpoints))
 
 
 def main():
