@@ -33,7 +33,6 @@ imagesLeftRightCam = []
 
 imageLeft_dict = {}
 imageRight_dict = {}
-common_keys =[]
 common_imageLeft_dict = {}
 common_imageRight_dict = {}
 
@@ -95,22 +94,13 @@ def handle_add_to_list(filename, corners):
 
 
 def create_list_img_left_right():
-    floorIndex = get_number_index(imagesLeftCam[0])
-    leftImagesId = [filename[floorIndex:] for filename in imagesLeftCam]
-    floorIndex = get_number_index(imagesRightCam[0])
-    rightImagesId = [filename[floorIndex:] for filename in imagesRightCam]
-
-    # Adding photo numbers to list
-
-    imagesLeftRightCam.extend(set(leftImagesId).intersection(rightImagesId))
-
-    common_keys.extend(set(imageLeft_dict.keys()).intersection(imageRight_dict.keys()))
+    common_keys = set(imageLeft_dict.keys()).intersection(imageRight_dict.keys())
 
     common_imageLeft_dict.update({key : imageLeft_dict[key] for key in common_keys})
     common_imageRight_dict.update({key : imageRight_dict[key] for key in common_keys})
     
     # Adding correct number of 3d points to list
-    objpoints.extend(objpointsLeft[:len(imagesLeftRightCam)])
+    objpoints.extend(objpointsLeft[:len(common_keys)])
 
 
 def get_number_index(filename):
