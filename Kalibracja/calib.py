@@ -4,6 +4,7 @@ import glob
 import os
 import time
 import csv
+from numpy import linalg as LA
 
 CHESSBOARD_SIZE = (6, 8)
 SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
@@ -146,9 +147,13 @@ def calib_stereo_cam(): #sort all list missing
     
     criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
-    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, ximgForCalib.shape[::-1], criteria_stereo, flags)
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria_stereo, flags)
+
+    print("Baseline: {}".format(LA.norm(trans)))
 
     # Shuld save some matrix, not sure which
+
+    # zapisywac wszystko, rot, trans wszystko wyzej, kod ponizej jest na kolejne labki, nie na teraz
 
     # Stereo Rectification
     
@@ -158,14 +163,15 @@ def calib_stereo_cam(): #sort all list missing
     stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
     stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
 
-    save_stereo_config(stereoMapL, stereoMapR, "stereoConfig")
+    save_stereo_config(stereoMapL, stereoMapR, trans, "stereoConfig")
 
-def save_stereo_config(mapL, mapR, filename):
+def save_stereo_config(mapL, mapR, trans, filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
     cv_file.write('stereoMapL_x', mapL[0])
     cv_file.write('stereoMapL_y', mapL[1])
     cv_file.write('stereoMapR_x', mapR[0])
     cv_file.write('stereoMapR_y', mapR[1])
+    cv_file.write('trans', trans)
     cv_file.release()
 
 
