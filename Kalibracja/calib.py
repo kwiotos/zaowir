@@ -4,9 +4,10 @@ import glob
 import os
 import time
 import csv
+from tqdm import tqdm
 from numpy import linalg as LA
 
-CHESSBOARD_SIZE = (6, 8)
+CHESSBOARD_SIZE = (8, 6)
 SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
 FRAME_SIZE = (1280, 1024)  # could be set on runtime depending on photo size
 
@@ -33,11 +34,12 @@ def provide_date_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
     dirname = os.path.join(os.path.realpath('.'), '..', 'src', 's4', '*.png')
+    #print(dirname)
 
     images = glob.glob(dirname)
     # images = glob.glob('*.png')
-    for fname in images:
-        print('filename: {}'.format(fname))
+    for fname in tqdm(images):
+        #print('filename: {}'.format(fname))
         # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
         img = cv.imread(fname)
         try:
