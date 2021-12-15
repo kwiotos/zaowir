@@ -30,7 +30,7 @@ common_imageLeft_dict = {}
 common_imageRight_dict = {}
 
 
-def provide_date_for_calib():
+def provide_data_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
     dirname = os.path.join(os.path.realpath('.'), '..', 'src', 's4', '*.png')
@@ -81,8 +81,10 @@ def handle_add_to_list(filename, corners):
 
 
 def create_list_img_left_right():
+    #wyszukanie wspólnych kluczy - numerów zdjęć z odnalezionymi wierzchołkami dla obu kamer
     common_keys = set(imageLeft_dict.keys()).intersection(imageRight_dict.keys())
 
+    #zapisanie wierzchołków tablicy do odpowiedniego słownika, ale tylko dla wspólnych kluczy
     common_imageLeft_dict.update({key : imageLeft_dict[key] for key in common_keys})
     common_imageRight_dict.update({key : imageRight_dict[key] for key in common_keys})
     
@@ -150,7 +152,7 @@ def calib_stereo_cam(): #sort all list missing
     flags = 0
     flags |= cv.CALIB_FIX_INTRINSIC
     
-    criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+    criteria_stereo = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
     retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria= criteria_stereo, flags= flags)
 
@@ -163,23 +165,26 @@ def calib_stereo_cam(): #sort all list missing
 
     # Stereo Rectification
     
-    rectifyScale= 1
-    rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
+    # rectifyScale= 1
+    # rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
 
-    stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
-    stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
+    # stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
+    # stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
 
-    save_stereo_config(stereoMapL, stereoMapR, trans, rot, "stereoConfig")
+    save_stereo_config(retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix, "stereoConfig")
 
 
-def save_stereo_config(mapL, mapR, trans, rot, filename):
+def save_stereo_config(retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix,filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
-    cv_file.write('stereoMapL_x', mapL[0])
-    cv_file.write('stereoMapL_y', mapL[1])
-    cv_file.write('stereoMapR_x', mapR[0])
-    cv_file.write('stereoMapR_y', mapR[1])
-    cv_file.write('trans', trans)
+    cv_file.write('retStereo', retStereo)
+    cv_file.write('newCameraMatrixL', newCameraMatrixL)
+    cv_file.write('distL', distL)
+    cv_file.write('newCameraMatrixR',newCameraMatrixR)
+    cv_file.write('distR', distR)
     cv_file.write('rot', rot)
+    cv_file.write('trans', trans)
+    cv_file.write('essentialMatrix', essentialMatrix)
+    cv_file.write('fundamentalMatrix', fundamentalMatrix)
     cv_file.release()
 
 
@@ -194,7 +199,7 @@ def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
 
 def main():
     start = time.time()
-    provide_date_for_calib()
+    provide_data_for_calib()
 
     # Left Cam
     # cameraMatrix, dst = calib_single_cam(objpointsLeft, imageLeft_dict.values())
