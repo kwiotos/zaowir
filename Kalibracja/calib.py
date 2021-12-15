@@ -32,7 +32,7 @@ common_imageRight_dict = {}
 def provide_date_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
-    dirname = os.path.join(os.path.realpath('.'), '..', 'src', 's4', '*.png')
+    dirname = os.path.join(os.path.realpath('.'), 'src', 's4', '*.png')
 
     images = glob.glob(dirname)
     # images = glob.glob('*.png')
@@ -53,14 +53,14 @@ def provide_date_for_calib():
             corners = cv.cornerSubPix(gray, corners, (11, 11), (-1, -1), criteria)
             handle_add_to_list(fname, corners)
             # Draw and display the corners
-            # show_img(img, corners, fname)
+            # show_img(img, corners)
     # I do not like the solution, but do not have idea for better one in this moment
     global imgForCalib
     imgForCalib = gray
     cv.destroyAllWindows()
 
 
-def show_img(img, corners, filename):
+def show_img(img, corners):
     cv.drawChessboardCorners(img, CHESSBOARD_SIZE, corners, True)
     cv.imshow("img", img)
     cv.waitKey(2000)
@@ -131,18 +131,18 @@ def save_single_calib_to_xml(cameraMatrix, map, filename):
 
 def calib_stereo_cam(): #sort all list missing 
     # Calibration Left Cam
-    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpointsLeft, list(imageLeft_dict.values()), FRAME_SIZE, None, None)
+    retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpoints, list(common_imageLeft_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
-    mean_error(objpointsLeft, list(imageLeft_dict.values()), rvecsL, tvecsL,cameraMatrixL, distL)
+    mean_error(objpoints, list(common_imageLeft_dict.values()), rvecsL, tvecsL,cameraMatrixL, distL)
 
     # Calibration Right Cam
-    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpointsRight, list(imageRight_dict.values()), FRAME_SIZE, None, None)
+    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpoints, list(common_imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
     save_single_calib_to_xml(newCameraMatrixR, dstMap, "rightCamConfig")
-    mean_error(objpointsRight, list(imageRight_dict.values()), rvecsR, tvecsR, cameraMatrixR, distR)
+    mean_error(objpoints, list(common_imageRight_dict.values()), rvecsR, tvecsR, cameraMatrixR, distR)
 
     # Stereo vision calibration
     flags = 0
