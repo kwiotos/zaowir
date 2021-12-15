@@ -4,9 +4,11 @@ import glob
 import os
 import time
 import csv
+from tqdm import tqdm
 from numpy import linalg as LA
+import json
 
-CHESSBOARD_SIZE = (6, 8)
+CHESSBOARD_SIZE = (8, 6)
 SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
 FRAME_SIZE = (1280, 1024)  # could be set on runtime depending on photo size
 
@@ -36,8 +38,8 @@ def provide_date_for_calib():
 
     images = glob.glob(dirname)
     # images = glob.glob('*.png')
-    for fname in images:
-        print('filename: {}'.format(fname))
+    for fname in tqdm(images):
+        #print('filename: {}'.format(fname))
         # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
         img = cv.imread(fname)
         try:
@@ -150,7 +152,9 @@ def calib_stereo_cam(): #sort all list missing
     
     criteria_stereo= (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
     
-    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], criteria= criteria_stereo, flags= flags)
+    retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv.stereoCalibrate(
+        objpoints, list(common_imageLeft_dict.values()), list(common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR,
+        distR, imgForCalib.shape[::-1], criteria= criteria_stereo, flags= flags)
 
     print("Baseline: {}".format(LA.norm(trans)))
     # print("Baseline: {}".format(LA.norm(LA.inv(rot)*trans)))
@@ -167,7 +171,8 @@ def calib_stereo_cam(): #sort all list missing
     stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
     stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
 
-    save_stereo_config(stereoMapL, stereoMapR, trans, rot, "stereoConfig")
+    #save_stereo_config(stereoMapL, stereoMapR, trans, rot, "stereoConfig")
+    save2json({"trans": trans, "rot": rot}, "stereo_config.json")
 
 
 def save_stereo_config(mapL, mapR, trans, rot, filename):
@@ -180,6 +185,16 @@ def save_stereo_config(mapL, mapR, trans, rot, filename):
     cv_file.write('rot', rot)
     cv_file.release()
 
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return json.JSONEncoder.default(self, obj)
+
+def save2json(data, filename):
+    with open(filename,"w", encoding='UTF8') as f:
+        json.dump(data,f,ensure_ascii=False, indent=4, cls=NumpyEncoder)
+
 
 def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
     mean_error = 0
@@ -187,7 +202,7 @@ def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
         imgpoints2, _ = cv.projectPoints(objpointsArg[i], rvecs[i], tvecs[i], mtx, dist)
         error = cv.norm(imgpointsArg[i], imgpoints2, cv.NORM_L2)/len(imgpoints2)
         mean_error += error
-    print("Mean reprojection error: {}", mean_error/len(objpoints))
+    print("Mean reprojection error: {}".format(mean_error/len(objpoints)))
 
 
 def main():
