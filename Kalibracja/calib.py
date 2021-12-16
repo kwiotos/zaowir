@@ -9,7 +9,7 @@ from numpy import linalg as LA
 import json
 
 CHESSBOARD_SIZE = (8, 6)
-SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
+SIZE_OF_CHESSBOARD_SQUARS_MM = 35.00
 FRAME_SIZE = (1280, 1024)  # could be set on runtime depending on photo size
 
 # termination criteria
@@ -34,12 +34,12 @@ common_imageRight_dict = {}
 def provide_data_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
-    dirname = os.path.join(os.path.realpath('.'), 'src', 's4', '*.png')
+    dirname = os.path.join(os.path.realpath('.'), 'src', 's5', '*.png')
 
     images = glob.glob(dirname)
     # images = glob.glob('*.png')
     for fname in tqdm(images):
-        #print('filename: {}'.format(fname))
+        # print('filename: {}'.format(fname))
         # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
         img = cv.imread(fname)
         try:
@@ -48,6 +48,7 @@ def provide_data_for_calib():
             print('Error cvtColor {}'.format(fname))
             continue
         # Find the chess board corners
+        # ret, corners = cv.findChessboardCorners(gray, CHESSBOARD_SIZE, cv.CALIB_CB_NORMALIZE_IMAGE)
         ret, corners = cv.findChessboardCorners(gray, CHESSBOARD_SIZE, None)
         # If found, add object points, image points (after refining them)
         if ret:
@@ -119,10 +120,11 @@ def calib_single_cam(objpointsArg, imgpointsArg):
     # Not sure which matrix we should save
     return cameraMatrix, dst
 
-def distortion_with_map(cameraMatrix, dist, newCameraMatrix, size):
+def distortion_with_map(cameraMatrix, dist, newCameraMatrix, size, pathToPhoto):
     # Undistort with Remapping
+    img = cv.imread(pathToPhoto, cv.IMREAD_COLOR)
     mapx, mapy = cv.initUndistortRectifyMap(cameraMatrix, dist, None, newCameraMatrix, size, 5)
-    dst = cv.remap(imgForCalib, mapx, mapy, cv.INTER_LINEAR)
+    dst = cv.remap(img, mapx, mapy, cv.INTER_LINEAR)
     return dst
 
 def save_single_calib_to_xml(cameraMatrix, filename):
@@ -140,17 +142,19 @@ def calib_stereo_cam(): #sort all list missing
     # Calibration Left Cam
     retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpoints, list(common_imageLeft_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
-    dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
-    # crop_and_save(dstMap, roiL, 'undistortedL')
+    save2json({"cameraMatrixL": cameraMatrixL,"distL": distL,"rvecsL": rvecsL,"tvecsL": tvecsL}, "left_config.json")
+    dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE, "C:/Users/jkoszowski/Desktop/Studia/zaowir/src/s5/left_4.png")
+    crop_and_save(dstMap, roiL, 'undistortedL')
     # save_single_calib_to_xml(newCameraMatrixL, "leftCamConfig")
     mean_error(objpoints, list(common_imageLeft_dict.values()), rvecsL, tvecsL,cameraMatrixL, distL)
 
     # Calibration Right Cam
-    retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpoints, list(common_imageRight_dict.values()), FRAME_SIZE, None, None)
+    retL, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpoints, list(common_imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
-    # dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
-    # crop_and_save(dstMap, roiR, 'undistortedR')
-    save_single_calib_to_xml(newCameraMatrixR, "rightCamConfig")
+    save2json({"cameraMatrixR": cameraMatrixR,"distR": distR,"rvecsR": rvecsR,"tvecsR": tvecsR}, "right_config.json")
+    dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE, "C:/Users/jkoszowski/Desktop/Studia/zaowir/src/s5/right_4.png")
+    crop_and_save(dstMap, roiR, 'undistortedR')
+    # save_single_calib_to_xml(newCameraMatrixR, "rightCamConfig")
     mean_error(objpoints, list(common_imageRight_dict.values()), rvecsR, tvecsR, cameraMatrixR, distR)
 
     # Stereo vision calibration
@@ -164,6 +168,7 @@ def calib_stereo_cam(): #sort all list missing
         distR, imgForCalib.shape[::-1], criteria= criteria_stereo, flags= flags)
 
     print("Baseline: {}".format(LA.norm(trans)))
+    save2json({"Baseline": "{:.4f} [mm]".format(LA.norm(trans))}, "baseline.json")
     # print("Baseline: {}".format(LA.norm(LA.inv(rot)*trans)))
 
     # Shuld save some matrix, not sure which
@@ -178,8 +183,9 @@ def calib_stereo_cam(): #sort all list missing
     # stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
     # stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
 
-    save_stereo_config(retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix, "stereoConfig")
-    save2json({"trans": trans, "rot": rot}, "stereo_config.json")
+    # save_stereo_config(retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix, "stereoConfig")
+    # save2json({"trans": trans, "rot": rot}, "stereo_config.json")
+    save2json({'retStereo': retStereo, 'newCameraMatrixL': newCameraMatrixL, 'distL': distL, 'newCameraMatrixR': newCameraMatrixR, 'distR': distR, 'rot': rot, 'trans': trans, 'essentialMatrix': essentialMatrix, 'fundamentalMatrix': fundamentalMatrix}, "stereo_config.json")
 
 
 def save_stereo_config(retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix,filename):
@@ -218,7 +224,6 @@ def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
 def main():
     start = time.time()
     provide_data_for_calib()
-
     # Left Cam
     # cameraMatrix, dst = calib_single_cam(objpointsLeft, imageLeft_dict.values())
     # save_single_calib_to_xml(cameraMatrix, dst, "leftCamConfig")
@@ -230,6 +235,9 @@ def main():
     # print("Macierz wewnętrzna prawa kamera: {}\n".format(cameraMatrix))
 
     create_list_img_left_right()
+
+    save2json({"leftPhotoList": list(imageLeft_dict.keys()), "rightPhotoList": list(imageRight_dict.keys()), "commonPhotos:": list(common_imageLeft_dict.keys())}, "photo_list.json")
+
     calib_stereo_cam()
     print("Run Time = {:.2f}".format(time.time() - start))
 
