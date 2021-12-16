@@ -125,12 +125,15 @@ def distortion_with_map(cameraMatrix, dist, newCameraMatrix, size):
     dst = cv.remap(imgForCalib, mapx, mapy, cv.INTER_LINEAR)
     return dst
 
-def save_single_calib_to_xml(cameraMatrix, map, filename):
+def save_single_calib_to_xml(cameraMatrix, filename):
     cv_file = cv.FileStorage('{}.xml'.format(filename), cv.FILE_STORAGE_WRITE)
     cv_file.write('camera_matrix', cameraMatrix)
-    cv_file.write('map_x', map[0])
-    cv_file.write('map_y', map[1])
     cv_file.release()
+
+def crop_and_save(img, roi, fname):
+    x, y, w, h = roi
+    img = img[y:y+h, x:x+w]
+    cv.imwrite('{}.png'.format(fname), img)
 
 
 def calib_stereo_cam(): #sort all list missing 
@@ -138,14 +141,16 @@ def calib_stereo_cam(): #sort all list missing
     retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(objpoints, list(common_imageLeft_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     dstMap = distortion_with_map(cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
-    save_single_calib_to_xml(newCameraMatrixL, dstMap, "leftCamConfig")
+    # crop_and_save(dstMap, roiL, 'undistortedL')
+    # save_single_calib_to_xml(newCameraMatrixL, "leftCamConfig")
     mean_error(objpoints, list(common_imageLeft_dict.values()), rvecsL, tvecsL,cameraMatrixL, distL)
 
     # Calibration Right Cam
     retR, cameraMatrixR, distR, rvecsR, tvecsR = cv.calibrateCamera(objpoints, list(common_imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
-    dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
-    save_single_calib_to_xml(newCameraMatrixR, dstMap, "rightCamConfig")
+    # dstMap = distortion_with_map(cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
+    # crop_and_save(dstMap, roiR, 'undistortedR')
+    save_single_calib_to_xml(newCameraMatrixR, "rightCamConfig")
     mean_error(objpoints, list(common_imageRight_dict.values()), rvecsR, tvecsR, cameraMatrixR, distR)
 
     # Stereo vision calibration
