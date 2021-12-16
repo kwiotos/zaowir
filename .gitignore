@@ -131,5 +131,8 @@ dmypy.json
 # Ignore folder src
 /src
 
-# Ignore csv files
+# Ignore csv, json, xml, png files
 *.csv
+*.json
+*.xml
+*.png
