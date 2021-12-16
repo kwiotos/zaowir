@@ -9,7 +9,7 @@ import json
 
 CHESSBOARD_SIZE = (8, 6)
 SIZE_OF_CHESSBOARD_SQUARS_MM = 35.00
-FRAME_SIZE = (1280, 1024)  # could be set on runtime depending on photo size
+FRAME_SIZE = (1280, 1024)
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -36,10 +36,8 @@ def provide_data_for_calib():
     dirname = os.path.join(os.path.realpath('.'), 'src', 's6', '*.png')
 
     images = glob.glob(dirname)
-    # images = glob.glob('*.png')
     for fname in tqdm(images):
         # print('filename: {}'.format(fname))
-        # img = cv2.imread('sample_image.png', cv2.IMREAD_COLOR) could be put in try cache
         img = cv.imread(fname)
         try:
             gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
@@ -113,7 +111,7 @@ def crop_and_save(img, roi, fname):
     cv.imwrite('{}.png'.format(fname), img)
 
 
-def calib_stereo_cam():  # sort all list missing
+def calib_stereo_cam():
     # Calibration Left Cam
     retL, cameraMatrixL, distL, rvecsL, tvecsL = cv.calibrateCamera(
         objpoints, list(common_imageLeft_dict.values()), FRAME_SIZE, None, None)
