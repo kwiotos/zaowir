@@ -8,7 +8,7 @@ from numpy import linalg as LA
 import json
 
 CHESSBOARD_SIZE = (8, 6)
-SIZE_OF_CHESSBOARD_SQUARS_MM = 35.00
+SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
 FRAME_SIZE = (1280, 1024)
 
 # termination criteria
