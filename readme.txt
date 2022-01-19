@@ -23,3 +23,6 @@ https://github.com/niconielsen32/ComputerVision/blob/master/StereoVision/Python/
 
 some lines:
 https://github.com/niconielsen32/ComputerVision/blob/master/StereoVision/Python/calibration.py
+
+epipolar lines:
+https://stackoverflow.com/questions/51089781/how-to-calculate-an-epipolar-line-with-a-stereo-pair-of-images-in-python-opencv
