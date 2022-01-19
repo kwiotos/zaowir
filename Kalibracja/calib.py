@@ -5,7 +5,7 @@ import os
 import time
 from tqdm import tqdm
 from numpy import linalg as LA
-import json
+from utils import save2json
 
 CHESSBOARD_SIZE = (8, 6)
 SIZE_OF_CHESSBOARD_SQUARS_MM = 28.67
