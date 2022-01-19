@@ -97,7 +97,7 @@ def get_number_index(filename):
     return filename.find('_') + 1
 
 
-def distortion_with_map(cameraMatrix, dist, newCameraMatrix, size):
+def undistortion_with_map(cameraMatrix, dist, newCameraMatrix, size):
     # Undistort with Remapping
     mapx, mapy = cv.initUndistortRectifyMap(
         cameraMatrix, dist, None, newCameraMatrix, size, 5)
@@ -119,7 +119,7 @@ def calib_stereo_cam():
         cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
     save2json({"cameraMatrixL": cameraMatrixL, "distL": distL,
               "rvecsL": rvecsL, "tvecsL": tvecsL}, "left_config.json")
-    dstMap = distortion_with_map(
+    dstMap = undistortion_with_map(
         cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     crop_and_save(dstMap, roiL, 'undistortedL')
     mean_error(objpoints, list(common_imageLeft_dict.values()),
@@ -132,7 +132,7 @@ def calib_stereo_cam():
         cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
     save2json({"cameraMatrixR": cameraMatrixR, "distR": distR,
               "rvecsR": rvecsR, "tvecsR": tvecsR}, "right_config.json")
-    dstMap = distortion_with_map(
+    dstMap = undistortion_with_map(
         cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
     crop_and_save(dstMap, roiR, 'undistortedR')
     mean_error(objpoints, list(common_imageRight_dict.values()),
