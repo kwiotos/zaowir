@@ -117,8 +117,7 @@ def calib_stereo_cam():
         objpoints, list(common_imageLeft_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixL, roiL = cv.getOptimalNewCameraMatrix(
         cameraMatrixL, distL, FRAME_SIZE, 1, FRAME_SIZE)
-    save2json({"cameraMatrixL": cameraMatrixL, "distL": distL,
-              "rvecsL": rvecsL, "tvecsL": tvecsL}, "left_config.json")
+    save2json({"cameraMatrixL": cameraMatrixL, "newCameraMatrixL": newCameraMatrixL, "distL": distL}, "left_config.json")
     dstMap = undistortion_with_map(
         cameraMatrixL, distL, newCameraMatrixL, FRAME_SIZE)
     crop_and_save(dstMap, roiL, 'undistortedL')
@@ -130,8 +129,7 @@ def calib_stereo_cam():
         objpoints, list(common_imageRight_dict.values()), FRAME_SIZE, None, None)
     newCameraMatrixR, roiR = cv.getOptimalNewCameraMatrix(
         cameraMatrixR, distR, FRAME_SIZE, 1, FRAME_SIZE)
-    save2json({"cameraMatrixR": cameraMatrixR, "distR": distR,
-              "rvecsR": rvecsR, "tvecsR": tvecsR}, "right_config.json")
+    save2json({"cameraMatrixR": cameraMatrixR, "newCameraMatrixR": newCameraMatrixR, "distR": distR}, "right_config.json")
     dstMap = undistortion_with_map(
         cameraMatrixR, distR, newCameraMatrixR, FRAME_SIZE)
     crop_and_save(dstMap, roiR, 'undistortedR')
@@ -150,7 +148,7 @@ def calib_stereo_cam():
             common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR,
         distR, imgForCalib.shape[::-1], criteria=criteria_stereo, flags=flags)
 
-    save2json({"newCameraMatrixL": newCameraMatrixL, "distL": distL, "newCameraMatrixR": newCameraMatrixR,
+    save2json({"cameraMatrixL": cameraMatrixL, "newCameraMatrixL": newCameraMatrixL, "distL": distL, "cameraMatrixR": cameraMatrixR, "newCameraMatrixR": newCameraMatrixR,
               "distR": distR, "rot": rot, "trans": trans, }, "stereo_calib_config.json")
 
     print("Baseline: {}".format(LA.norm(trans)))
