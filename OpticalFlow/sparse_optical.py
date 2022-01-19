@@ -60,6 +60,8 @@ while(1):
     k = cv.waitKey(30) & 0xff
     if k == 27:
         break
+    elif k == ord('s'):
+        cv.imwrite('sparse_opt.png', img)
 
     # Now update the previous frame and previous points
     old_gray = frame_gray.copy()
