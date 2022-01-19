@@ -33,7 +33,7 @@ common_imageRight_dict = {}
 def provide_data_for_calib():
     # get relative path
     # dirname = os.path.join(os.path.realpath('.'), '..', 'src','s1', '*.png')
-    dirname = os.path.join(os.path.realpath('.'), 'src', 's6', '*.png')
+    dirname = os.path.join(os.path.realpath('.'), 'src', 's4', '*.png')
 
     images = glob.glob(dirname)
     for fname in tqdm(images):
@@ -150,37 +150,13 @@ def calib_stereo_cam():
             common_imageRight_dict.values()), newCameraMatrixL, distL, newCameraMatrixR,
         distR, imgForCalib.shape[::-1], criteria=criteria_stereo, flags=flags)
 
+    save2json({"newCameraMatrixL": newCameraMatrixL, "distL": distL, "newCameraMatrixR": newCameraMatrixR,
+              "distR": distR, "rot": rot, "trans": trans, }, "stereo_calib_config.json")
+
     print("Baseline: {}".format(LA.norm(trans)))
     save2json({"Baseline": "{:.4f} [mm]".format(
         LA.norm(trans))}, "baseline.json")
     # print("Baseline: {}".format(LA.norm(LA.inv(rot)*trans)))
-
-    # Shuld save some matrix, not sure which
-
-    # zapisywac wszystko, rot, trans wszystko wyzej, kod ponizej jest na kolejne labki, nie na teraz
-
-    # Stereo Rectification
-
-    # rectifyScale= 1
-    # rectL, rectR, projMatrixL, projMatrixR, Q, roi_L, roi_R = cv.stereoRectify(newCameraMatrixL, distL, newCameraMatrixR, distR, imgForCalib.shape[::-1], rot, trans, rectifyScale,(0,0))
-
-    # stereoMapL = cv.initUndistortRectifyMap(newCameraMatrixL, distL, rectL, projMatrixL, imgForCalib.shape[::-1], cv.CV_16SC2)
-    # stereoMapR = cv.initUndistortRectifyMap(newCameraMatrixR, distR, rectR, projMatrixR, imgForCalib.shape[::-1], cv.CV_16SC2)
-
-    save2json({'retStereo': retStereo, 'newCameraMatrixL': newCameraMatrixL, 'distL': distL, 'newCameraMatrixR': newCameraMatrixR, 'distR': distR,
-              'rot': rot, 'trans': trans, 'essentialMatrix': essentialMatrix, 'fundamentalMatrix': fundamentalMatrix}, "stereo_config.json")
-
-
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return json.JSONEncoder.default(self, obj)
-
-
-def save2json(data, filename):
-    with open(filename, "w", encoding='UTF8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4, cls=NumpyEncoder)
 
 
 def mean_error(objpointsArg, imgpointsArg, rvecs, tvecs, mtx, dist):
