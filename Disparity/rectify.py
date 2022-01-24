@@ -1,7 +1,7 @@
 import cv2 as cv
 import time
 import numpy as np
-from utils import save2json, loadFromJson
+from utils import loadFromJson
 
 
 def scale_pic(img, scale_percent = 60):
@@ -16,7 +16,6 @@ def im_show(name, img, scale = 60):
     cv.imshow(name, scale_pic(img, scale))
 
 def rectify(cameraMatrix, dist, rect, projMatrix, imgRectify, size):
-    h, w, _ = imgRectify.shape 
     # Undistort with Remapping
     mapx, mapy = cv.initUndistortRectifyMap(
         cameraMatrix, dist, rect, projMatrix, size, cv.CV_16SC2)
